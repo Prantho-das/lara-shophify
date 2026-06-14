@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            if (!Schema::hasColumn('orders', 'courier_name')) {
+                $table->string('courier_name')->nullable()->after('shipping_charge');
+            }
+            if (!Schema::hasColumn('orders', 'courier_tracking_code')) {
+                $table->string('courier_tracking_code')->nullable()->after('courier_name');
+            }
+            if (!Schema::hasColumn('orders', 'courier_status')) {
+                $table->string('courier_status')->nullable()->after('courier_tracking_code');
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            $table->dropColumn(['courier_name', 'courier_tracking_code', 'courier_status']);
+        });
+    }
+};
