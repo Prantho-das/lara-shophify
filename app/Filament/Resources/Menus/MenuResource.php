@@ -17,9 +17,8 @@ use Filament\Tables\Table;
 class MenuResource extends Resource
 {
     protected static ?string $model = Menu::class;
-    protected static string|\UnitEnum|null $navigationGroup = 'Storefront';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
-    protected static ?int $navigationSort = 3;
+        protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
+    protected static ?int $navigationSort = 120;
 
     public static function form(Schema $schema): Schema
     {

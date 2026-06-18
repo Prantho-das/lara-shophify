@@ -92,6 +92,27 @@ class CheckoutPage extends Component
         }
 
         $this->calculateTotals();
+
+        // Trigger Facebook InitiateCheckout CAPI & Pixel
+        $eventId = 'ic_' . time();
+        $contentIds = [];
+        $contents = [];
+        foreach ($this->cartItems as $item) {
+            $contentIds[] = (string)$item['id'];
+            $contents[] = [
+                'id' => (string)$item['id'],
+                'quantity' => (int)$item['qty']
+            ];
+        }
+        $customData = [
+            'content_ids' => $contentIds,
+            'contents' => $contents,
+            'content_type' => 'product',
+            'value' => (float)$this->total,
+            'currency' => 'BDT',
+        ];
+        \App\Services\FacebookCapiService::sendEvent('InitiateCheckout', $eventId, $customData);
+        $this->dispatch('fb-event', name: 'InitiateCheckout', data: $customData, eventId: $eventId);
     }
 
     public function updatedShippingZoneId($value)
@@ -256,6 +277,35 @@ class CheckoutPage extends Component
         if ($order) {
             $this->placedOrderId = $order->id;
             $this->orderPlaced = true;
+
+            // Trigger Facebook Purchase CAPI & Pixel
+            $eventId = 'pur_' . $order->id . '_' . time();
+            $contentIds = [];
+            $contents = [];
+            foreach ($this->cartItems as $item) {
+                $contentIds[] = (string)$item['id'];
+                $contents[] = [
+                    'id' => (string)$item['id'],
+                    'quantity' => (int)$item['qty']
+                ];
+            }
+            $customData = [
+                'content_ids' => $contentIds,
+                'contents' => $contents,
+                'content_type' => 'product',
+                'value' => (float)$order->total_amount,
+                'currency' => 'BDT',
+            ];
+            $userData = [
+                'em' => $this->customerEmail ?: null,
+                'ph' => $this->customerPhone,
+                'fn' => $this->customerName,
+                'ct' => $this->district ?: null,
+                'country' => $this->country ?: 'Bangladesh',
+            ];
+            
+            \App\Services\FacebookCapiService::sendEvent('Purchase', $eventId, $customData, $userData);
+            $this->dispatch('fb-event', name: 'Purchase', data: $customData, eventId: $eventId);
             
             Cart::clear();
             session()->forget('coupon');

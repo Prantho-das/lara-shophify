@@ -17,7 +17,7 @@ class ShippingZonesTable
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('cost')
-                    ->money()
+                    ->formatStateUsing(fn ($state) => (\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2))
                     ->sortable(),
                 TextColumn::make('status')
                     ->searchable(),

@@ -20,9 +20,8 @@ class LocationRateResource extends Resource
 {
     protected static ?string $model = LocationRate::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
-    protected static ?int $navigationSort = 2;
+        protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+    protected static ?int $navigationSort = 150;
     protected static ?string $title = 'Location Shipping Rates';
 
     public static function form(Schema $schema): Schema

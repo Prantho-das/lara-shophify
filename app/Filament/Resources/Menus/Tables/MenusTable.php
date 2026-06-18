@@ -13,6 +13,14 @@ class MenusTable
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('location'),
+            ])
+            ->actions([
+                \Filament\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

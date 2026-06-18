@@ -19,6 +19,11 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Enums\Width;
+use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Assets\Css;
+use App\Filament\Widgets\StatsOverview;
+use App\Filament\Widgets\OrdersChart;
+use App\Filament\Widgets\QuickActions;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -30,6 +35,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->spa()
             ->login()
+            ->brandName(fn () => \App\Models\Setting::where('key', 'store_name')->value('value') ?? 'LaraShophify')
+            ->brandLogo(fn () => \App\Models\Setting::where('key', 'store_logo')->value('value') 
+                ? asset('storage/' . \App\Models\Setting::where('key', 'store_logo')->value('value')) 
+                : null)
+            ->favicon(fn () => \App\Models\Setting::where('key', 'store_favicon')->value('value') 
+                ? asset('storage/' . \App\Models\Setting::where('key', 'store_favicon')->value('value')) 
+                : null)
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -42,9 +54,11 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            // ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-               
+               QuickActions::class,
+               StatsOverView::class,
+               OrdersChart::class
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -60,5 +74,12 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    public function boot(): void
+    {
+        FilamentAsset::register([
+            Css::make('admin-custom', public_path('css/admin-custom.css')),
+        ]);
     }
 }

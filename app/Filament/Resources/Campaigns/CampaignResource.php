@@ -18,9 +18,13 @@ class CampaignResource extends Resource
 {
     protected static ?string $model = Campaign::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
-    protected static ?int $navigationSort = 2;
+        protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
+    protected static ?int $navigationSort = 70;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

@@ -53,7 +53,7 @@ class VariantsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('attribute_values')->json(),
                 TextColumn::make('sku')->searchable(),
-                TextColumn::make('price')->money('bdt'),
+                TextColumn::make('price')->formatStateUsing(fn ($state) => (\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2)),
                 TextColumn::make('stock_quantity')->numeric(),
                 \Filament\Tables\Columns\ToggleColumn::make('is_active'),
             ])

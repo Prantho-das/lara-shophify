@@ -14,15 +14,20 @@ class CategoryForm
     {
         return $schema
             ->components([
-                TextInput::make('parent_id')
-                    ->numeric(),
+                \Filament\Forms\Components\Select::make('parent_id')
+                    ->label('Parent Category')
+                    ->relationship('parent', 'name')
+                    ->placeholder('Select Parent Category')
+                    ->nullable()
+                    ->searchable()
+                    ->preload(),
                 TextInput::make('name')
                     ->required(),
                 TextInput::make('slug')
                     ->required(),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                FileUpload::make('image')
+                FileUpload::make('image') ->disk('public')
                     ->image(),
                 TextInput::make('sort_order')
                     ->required()

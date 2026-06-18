@@ -11,17 +11,26 @@ class OrderItem extends Model
     protected static function booted()
     {
         static::created(function ($orderItem) {
-            $orderItem->adjustStock(-$orderItem->quantity);
+            $order = $orderItem->order;
+            if (!$order || !in_array($order->status, ['cancelled', 'returned'])) {
+                $orderItem->adjustStock(-$orderItem->quantity);
+            }
         });
 
         static::deleted(function ($orderItem) {
-            $orderItem->adjustStock($orderItem->quantity);
+            $order = $orderItem->order;
+            if (!$order || !in_array($order->status, ['cancelled', 'returned'])) {
+                $orderItem->adjustStock($orderItem->quantity);
+            }
         });
 
         static::updated(function ($orderItem) {
-            $qtyDiff = $orderItem->quantity - $orderItem->getOriginal('quantity');
-            if ($qtyDiff !== 0) {
-                $orderItem->adjustStock(-$qtyDiff);
+            $order = $orderItem->order;
+            if (!$order || !in_array($order->status, ['cancelled', 'returned'])) {
+                $qtyDiff = $orderItem->quantity - $orderItem->getOriginal('quantity');
+                if ($qtyDiff !== 0) {
+                    $orderItem->adjustStock(-$qtyDiff);
+                }
             }
         });
     }

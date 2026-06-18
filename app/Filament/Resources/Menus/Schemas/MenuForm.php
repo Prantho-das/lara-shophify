@@ -15,9 +15,13 @@ class MenuForm
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                TextInput::make('location')
-                    ->label('Location (e.g. header, footer)')
-                    ->maxLength(255),
+                \Filament\Forms\Components\Select::make('location')
+                    ->label('Menu Location')
+                    ->options([
+                        'header' => 'Header Menu',
+                        'footer' => 'Footer Menu',
+                    ])
+                    ->required(),
                 Repeater::make('items')
                     ->relationship()
                     ->schema([

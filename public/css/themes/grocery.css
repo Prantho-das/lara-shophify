@@ -1,18 +1,31 @@
-/* Grocery Theme CSS */
+/* ==========================================
+   Shopify-Style Premium Grocery Theme
+   ========================================== */
 :root {
-    --primary-color: #22c55e;
-    --primary-hover: #16a34a;
-    --secondary-color: #f0fdf4;
+    --primary-color: #10b981;
+    --primary-hover: #059669;
+    --secondary-color: #ecfdf5;
     --accent-color: #f59e0b;
-    --bg-color: #f8fafc;
+    --bg-color: #f9fafb;
     --card-bg: #ffffff;
-    --text-color: #1e293b;
-    --text-muted: #64748b;
+    --text-color: #111827;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
     --border-radius: 16px;
-    --border-color: #e2e8f0;
     --font-family: 'Outfit', system-ui, sans-serif;
-    --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    --box-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    --box-shadow-hover: 0 12px 30px -4px rgba(16, 185, 129, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+    --bg-color: #060810;
+    --card-bg: #0d121f;
+    --text-color: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border-color: #1f2937;
+    --secondary-color: #064e3b;
+    --box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+    --box-shadow-hover: 0 12px 35px rgba(16, 185, 129, 0.06), 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 body {
@@ -21,36 +34,41 @@ body {
     font-family: var(--font-family);
     margin: 0;
     padding: 0;
-    line-height: 1.5;
+    line-height: 1.6;
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-/* Header styling */
+/* Header & Navigation */
 .store-header {
-    background-color: #ffffff;
+    background-color: var(--card-bg);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 .search-input {
     border-radius: 9999px;
     border: 1px solid var(--border-color);
     padding: 0.75rem 1.5rem;
-    transition: all 0.2s ease;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .search-input:focus {
     border-color: var(--primary-color);
+    background-color: var(--card-bg);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
-/* Product Card Styling */
+/* Premium Product Cards */
 .product-card {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: var(--box-shadow);
     display: flex;
     flex-direction: column;
@@ -58,16 +76,17 @@ body {
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--box-shadow-hover);
-    border-color: rgba(34, 197, 94, 0.3);
+    border-color: rgba(16, 185, 129, 0.4);
 }
 
 .product-image-container {
-    background-color: #f8fafc;
+    background-color: var(--bg-color);
     position: relative;
     padding-top: 100%;
     overflow: hidden;
+    transition: background-color 0.4s ease;
 }
 
 .product-image {
@@ -77,54 +96,79 @@ body {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 1rem;
-    transition: transform 0.5s ease;
+    padding: 1.25rem;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .product-card:hover .product-image {
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
-/* Category Circle Grid */
+/* Badges & Tags */
 .category-badge {
     background-color: var(--secondary-color);
     color: var(--primary-color);
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 9999px;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     display: inline-block;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(16, 185, 129, 0.1);
 }
 
 .category-badge:hover {
     background-color: var(--primary-color);
     color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
-/* Buttons */
+/* Premium Buttons */
 .btn-primary {
     background-color: var(--primary-color);
     color: #ffffff;
     border-radius: 9999px;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    padding: 0.75rem 1.75rem;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
 }
 
 /* Hero Section */
 .hero-slider-container {
     border-radius: 24px;
     overflow: hidden;
-    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+/* Custom Web Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
 }

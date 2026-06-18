@@ -2,7 +2,8 @@
     <form wire:submit.prevent="submit" novalidate class="space-y-6">
         {{ $this->form }}
 
-        <div class="mt-6">
+         <div class="mt-6">
+         </br>
             <x-filament::button type="submit" size="lg">
                 Save Settings
             </x-filament::button>

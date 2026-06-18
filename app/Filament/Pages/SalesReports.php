@@ -10,15 +10,14 @@ use Illuminate\Support\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 
 class SalesReports extends Page implements HasForms
 {
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?int $navigationSort = 3;
+        protected static ?int $navigationSort = 90;
     protected static ?string $title = 'Sales & Business Reports';
 
     protected string $view = 'filament.pages.sales-reports';
@@ -33,10 +32,10 @@ class SalesReports extends Page implements HasForms
         ]);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 DatePicker::make('startDate')
                     ->label('Start Date')
                     ->default(now()->startOfMonth())

@@ -17,7 +17,7 @@ class ShippingZoneForm
                     ->required()
                     ->numeric()
                     ->default(0)
-                    ->prefix('$'),
+                    ->prefix('৳'),
                 TextInput::make('status')
                     ->required()
                     ->default('active'),

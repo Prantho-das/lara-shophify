@@ -22,8 +22,7 @@ class StoreSettings extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?int $navigationSort = 1;
+        protected static ?int $navigationSort = 130;
     protected static ?string $title = 'Store Settings & Theme Customizer';
 
     protected string $view = 'filament.pages.store-settings';
@@ -37,8 +36,11 @@ class StoreSettings extends Page implements HasForms
         $this->form->fill([
             'store_name' => $settings['store_name'] ?? '',
             'store_logo' => $settings['store_logo'] ?? '',
+            'store_favicon' => $settings['store_favicon'] ?? '',
             'store_theme' => $settings['store_theme'] ?? 'grocery',
             'allow_guest_checkout' => filter_var($settings['allow_guest_checkout'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            'enable_buy_now' => filter_var($settings['enable_buy_now'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            'enable_product_checkout' => filter_var($settings['enable_product_checkout'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'support_phone' => $settings['support_phone'] ?? '',
             'support_email' => $settings['support_email'] ?? '',
             'currency_symbol' => $settings['currency_symbol'] ?? '৳',
@@ -64,6 +66,9 @@ class StoreSettings extends Page implements HasForms
             'footer_sections' => json_decode($settings['footer_sections'] ?? '[]', true),
             'gtm_id' => $settings['gtm_id'] ?? '',
             'facebook_pixel_id' => $settings['facebook_pixel_id'] ?? '',
+            'facebook_capi_enabled' => filter_var($settings['facebook_capi_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'facebook_capi_token' => $settings['facebook_capi_token'] ?? '',
+            'facebook_capi_test_code' => $settings['facebook_capi_test_code'] ?? '',
             'tiktok_pixel_id' => $settings['tiktok_pixel_id'] ?? '',
             'custom_head_scripts' => $settings['custom_head_scripts'] ?? '',
             'custom_body_scripts' => $settings['custom_body_scripts'] ?? '',
@@ -75,6 +80,14 @@ class StoreSettings extends Page implements HasForms
             'pathao_password' => $settings['pathao_password'] ?? '',
             'pathao_store_id' => $settings['pathao_store_id'] ?? '',
             'pathao_sandbox' => filter_var($settings['pathao_sandbox'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            'popup_enabled' => filter_var($settings['popup_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'popup_type' => $settings['popup_type'] ?? 'newsletter',
+            'popup_title' => $settings['popup_title'] ?? '',
+            'popup_content' => $settings['popup_content'] ?? '',
+            'popup_image' => $settings['popup_image'] ?? '',
+            'popup_link' => $settings['popup_link'] ?? '',
+            'popup_delay' => $settings['popup_delay'] ?? 3,
+            'popup_cookie_lifetime' => $settings['popup_cookie_lifetime'] ?? 1,
         ]);
     }
 
@@ -88,7 +101,14 @@ class StoreSettings extends Page implements HasForms
                             ->icon('heroicon-o-building-storefront')
                             ->schema([
                                 TextInput::make('store_name')->required(),
-                                FileUpload::make('store_logo')->image()->directory('settings'),
+                                FileUpload::make('store_logo')->image()
+                                    ->disk('public')
+                                    ->directory('settings'),
+                                FileUpload::make('store_favicon')
+                                    ->label('Store Favicon')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('settings'),
                                 Select::make('store_theme')
                                     ->label('Store Theme Preset')
                                     ->options([
@@ -100,6 +120,12 @@ class StoreSettings extends Page implements HasForms
                                     ->required(),
                                 Toggle::make('allow_guest_checkout')
                                     ->label('Allow Customers to Checkout as Guest')
+                                    ->default(true),
+                                Toggle::make('enable_buy_now')
+                                    ->label("Enable 'Buy Now' Button (Direct Order)")
+                                    ->default(true),
+                                Toggle::make('enable_product_checkout')
+                                    ->label("Enable Product-wise Direct Checkout Form on Product Details Page")
                                     ->default(true),
                                 TextInput::make('support_phone'),
                                 TextInput::make('support_email')->email(),
@@ -149,8 +175,12 @@ class StoreSettings extends Page implements HasForms
                             ->icon('heroicon-o-paint-brush')
                             ->schema([
                                 \Filament\Schemas\Components\Grid::make(2)->schema([
-                                    ColorPicker::make('primary_color')->label('Theme Primary Color'),
-                                    ColorPicker::make('secondary_color')->label('Theme Secondary Color'),
+                                    ColorPicker::make('primary_color')
+                                        ->label('Theme Primary Color')
+                                        ->helperText('Your brand\'s main color used for buttons, active links, and highlights.'),
+                                    ColorPicker::make('secondary_color')
+                                        ->label('Theme Secondary Color')
+                                        ->helperText('Use a very light pastel/soft version of primary color (e.g. #fef2f2). Leave blank to auto-generate from primary.'),
                                 ]),
                                 Select::make('store_font')
                                     ->label('Store Font')
@@ -172,6 +202,52 @@ class StoreSettings extends Page implements HasForms
                                     'sticky' => 'Sticky Header (Stays on top)',
                                 ])->default('normal'),
                                 TextInput::make('topbar_text')->label('Announcement Bar Text')->columnSpanFull(),
+                            ]),
+                        Tabs\Tab::make('Popups & Modals')
+                            ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                            ->schema([
+                                Toggle::make('popup_enabled')
+                                    ->label('Enable Popups on Storefront')
+                                    ->default(false)
+                                    ->live(),
+                                \Filament\Schemas\Components\Grid::make(2)->schema([
+                                    Select::make('popup_type')
+                                        ->options([
+                                            'newsletter' => 'Newsletter Signup (Form)',
+                                            'promotion' => 'Promotional Image Banner',
+                                            'announcement' => 'Standard Announcement Alert',
+                                        ])
+                                        ->default('newsletter')
+                                        ->required()
+                                        ->live(),
+                                    TextInput::make('popup_title')
+                                        ->label('Popup Heading Title')
+                                        ->required(fn($get) => $get('popup_enabled') && $get('popup_type') !== 'promotion'),
+                                ])->visible(fn($get) => $get('popup_enabled')),
+                                RichEditor::make('popup_content')
+                                    ->label('Popup Body / Content Text')
+                                    ->visible(fn($get) => $get('popup_enabled') && $get('popup_type') !== 'promotion'),
+                                FileUpload::make('popup_image')
+                                    ->label('Popup Banner Image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('settings')
+                                    ->visible(fn($get) => $get('popup_enabled') && $get('popup_type') === 'promotion'),
+                                TextInput::make('popup_link')
+                                    ->label('Popup Redirect/Action Link (e.g. /shop)')
+                                    ->visible(fn($get) => $get('popup_enabled')),
+                                \Filament\Schemas\Components\Grid::make(2)->schema([
+                                    TextInput::make('popup_delay')
+                                        ->label('Trigger Delay (seconds)')
+                                        ->numeric()
+                                        ->default(3)
+                                        ->required(fn($get) => $get('popup_enabled')),
+                                    TextInput::make('popup_cookie_lifetime')
+                                        ->label('Cookie Lifetime / Hide Duration (days)')
+                                        ->numeric()
+                                        ->default(1)
+                                        ->required(fn($get) => $get('popup_enabled')),
+                                ])->visible(fn($get) => $get('popup_enabled')),
                             ]),
                         Tabs\Tab::make('SEO & Social')
                             ->icon('heroicon-o-globe-alt')
@@ -244,6 +320,75 @@ class StoreSettings extends Page implements HasForms
                                                     ->multiple()
                                                     ->options(fn() => \App\Models\Banner::pluck('title', 'id')->toArray()),
                                             ]),
+                                        Builder\Block::make('hero_split')
+                                            ->label('Split Hero Banner')
+                                            ->icon('heroicon-o-newspaper')
+                                            ->schema([
+                                                TextInput::make('title')->label('Main Title')->required(),
+                                                TextInput::make('subtitle')->label('Subtitle/Description'),
+                                                TextInput::make('badge_text')->label('Small Badge Text (e.g. NEW ARRIVAL)'),
+                                                TextInput::make('button_text')->label('Button Text')->default('Shop Now'),
+                                                TextInput::make('button_url')->label('Button Link')->default('/shop'),
+                                                FileUpload::make('image')->image() ->disk('public')->directory('settings')->label('Hero Image')->required(),
+                                                Select::make('text_alignment')
+                                                    ->options([
+                                                        'left' => 'Text on Left, Image on Right',
+                                                        'right' => 'Text on Right, Image on Left',
+                                                    ])->default('left')->required(),
+                                            ]),
+                                        Builder\Block::make('category_pills')
+                                            ->label('Category Pills (Quick Links)')
+                                            ->icon('heroicon-o-bookmark')
+                                            ->schema([
+                                                TextInput::make('title')->label('Section Title')->default('Explore Categories'),
+                                                Select::make('category_ids')
+                                                    ->label('Select Categories')
+                                                    ->multiple()
+                                                    ->options(fn() => \App\Models\Category::pluck('name', 'id')->toArray()),
+                                            ]),
+                                        Builder\Block::make('tabbed_products')
+                                            ->label('Tabbed Products Grid')
+                                            ->icon('heroicon-o-squares-plus')
+                                            ->schema([
+                                                TextInput::make('title')->label('Section Title')->default('Our Collections'),
+                                                \Filament\Forms\Components\Repeater::make('tabs')
+                                                    ->label('Tabs Setup')
+                                                    ->schema([
+                                                        TextInput::make('tab_title')->label('Tab Name (e.g. Best Sellers)')->required(),
+                                                        Select::make('product_ids')
+                                                            ->label('Select Products')
+                                                            ->multiple()
+                                                            ->options(fn() => \App\Models\Product::pluck('name', 'id')->toArray())
+                                                            ->required(),
+                                                    ])
+                                                    ->columns(2)
+                                                    ->collapsible()
+                                                    ->default([
+                                                        ['tab_title' => 'New Arrivals'],
+                                                        ['tab_title' => 'Best Sellers']
+                                                    ]),
+                                            ]),
+                                        Builder\Block::make('deal_of_the_day')
+                                            ->label('Deal of the Day (Countdown)')
+                                            ->icon('heroicon-o-clock')
+                                            ->schema([
+                                                TextInput::make('title')->label('Section Title')->default('Deal Of The Day'),
+                                                Select::make('product_id')
+                                                    ->label('Select Featured Product')
+                                                    ->options(fn() => \App\Models\Product::pluck('name', 'id')->toArray())
+                                                    ->required(),
+                                                \Filament\Forms\Components\DateTimePicker::make('countdown_end')
+                                                    ->label('Countdown Ends At')
+                                                    ->required(),
+                                                TextInput::make('stock_limit')
+                                                    ->numeric()
+                                                    ->label('Initial Stock Limit (e.g. 50)')
+                                                    ->default(50),
+                                                TextInput::make('stock_sold')
+                                                    ->numeric()
+                                                    ->label('Simulated Items Sold (e.g. 35)')
+                                                    ->default(35),
+                                            ]),
                                         Builder\Block::make('featured_categories')
                                             ->label('Featured Categories Grid')
                                             ->icon('heroicon-o-tag')
@@ -298,7 +443,7 @@ class StoreSettings extends Page implements HasForms
                                                         TextInput::make('role')->label('Role / Designation')->default('Verified Customer'),
                                                         TextInput::make('rating')->numeric()->default(5)->minValue(1)->maxValue(5)->required(),
                                                         \Filament\Forms\Components\Textarea::make('comment')->required(),
-                                                        FileUpload::make('avatar')->image()->directory('settings')->label('Avatar (Optional)'),
+                                                        FileUpload::make('avatar') ->disk('public')->image()->directory('settings')->label('Avatar (Optional)'),
                                                     ])
                                                     ->columns(2)
                                                     ->collapsible(),
@@ -338,7 +483,7 @@ class StoreSettings extends Page implements HasForms
                                             ->label('Promotional Banner (Image)')
                                             ->icon('heroicon-o-megaphone')
                                             ->schema([
-                                                FileUpload::make('image')->image()->directory('settings'),
+                                                FileUpload::make('image') ->disk('public')->image()->directory('settings'),
                                                 TextInput::make('link')->url()->label('Banner Link'),
                                             ]),
                                         Builder\Block::make('text_block')
@@ -389,23 +534,62 @@ class StoreSettings extends Page implements HasForms
                         Tabs\Tab::make('Marketing & Pixels')
                             ->icon('heroicon-o-presentation-chart-line')
                             ->schema([
-                                \Filament\Schemas\Components\Fieldset::make('Analytics IDs')->schema([
+                                \Filament\Schemas\Components\Fieldset::make('Analytics & Pixel IDs')->schema([
                                     TextInput::make('gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXX'),
                                     TextInput::make('facebook_pixel_id')->label('Facebook Pixel ID')->placeholder('1234567890'),
                                     TextInput::make('tiktok_pixel_id')->label('TikTok Pixel ID')->placeholder('C1234567890'),
-                                ]),
+                                ])->columns(3),
+                                \Filament\Schemas\Components\Fieldset::make('Facebook Conversion API (CAPI)')->schema([
+                                    Toggle::make('facebook_capi_enabled')
+                                        ->label('Enable Facebook Conversion API')
+                                        ->default(false)
+                                        ->reactive(),
+                                    TextInput::make('facebook_capi_token')
+                                        ->label('CAPI Access Token')
+                                        ->password()
+                                        ->dehydrateStateUsing(fn ($state) => $state)
+                                        ->required(fn($get) => $get('facebook_capi_enabled') === true)
+                                        ->columnSpan(2),
+                                    TextInput::make('facebook_capi_test_code')
+                                        ->label('CAPI Test Event Code (Optional)')
+                                        ->placeholder('TEST12345')
+                                        ->helperText('Use this to test events inside Events Manager > Test Events tab.'),
+                                ])->columns(4),
                                 \Filament\Schemas\Components\Fieldset::make('Custom Scripts / Pixels')->schema([
                                     \Filament\Forms\Components\Textarea::make('custom_head_scripts')
                                         ->label('Custom Header Scripts (Inside <head>)')
                                         ->rows(4)
                                         ->columnSpanFull()
-                                        ->placeholder('<!-- Global site tag (gtag.js) -->...'),
+                                        ->placeholder('<!-- Global site tag (gtag.js) -->'),
                                     \Filament\Forms\Components\Textarea::make('custom_body_scripts')
                                         ->label('Custom Body Scripts (Inside <body>)')
                                         ->rows(4)
                                         ->columnSpanFull()
                                         ->placeholder('<!-- Facebook Noscript or Custom Widgets -->...'),
                                 ]),
+                            ]),
+                        Tabs\Tab::make('Quick Links & Feeds')
+                            ->icon('heroicon-o-link')
+                            ->schema([
+                                \Filament\Schemas\Components\Fieldset::make('Storefront Policy Pages')->schema([
+                                    \Filament\Forms\Components\Placeholder::make('privacy_policy_url')
+                                        ->label('Privacy Policy URL')
+                                        ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/page/privacy-policy') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/page/privacy-policy') . '</a>')),
+                                    \Filament\Forms\Components\Placeholder::make('terms_url')
+                                        ->label('Terms of Service URL')
+                                        ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/page/terms-of-service') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/page/terms-of-service') . '</a>')),
+                                    \Filament\Forms\Components\Placeholder::make('refund_url')
+                                        ->label('Refund & Return Policy URL')
+                                        ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/page/refund-policy') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/page/refund-policy') . '</a>')),
+                                ])->columns(3),
+                                \Filament\Schemas\Components\Fieldset::make('Search Engine & Marketing Feeds')->schema([
+                                    \Filament\Forms\Components\Placeholder::make('sitemap_url')
+                                        ->label('XML Sitemap Feed URL')
+                                        ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/sitemap.xml') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-mono flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/sitemap.xml') . '</a>')),
+                                    \Filament\Forms\Components\Placeholder::make('facebook_catalog_url')
+                                        ->label('Facebook Product Catalogue XML Feed')
+                                        ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/feed/facebook-catalog.xml') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-mono flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/feed/facebook-catalog.xml') . '</a>')),
+                                ])->columns(2),
                             ]),
                     ])->columnSpanFull()
             ])

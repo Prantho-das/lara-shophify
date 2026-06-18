@@ -27,8 +27,8 @@ class CouponForm
                 TextInput::make('discount_value')
                     ->numeric()
                     ->default(0)
-                    ->required()
-                    ->disabled(fn ($get) => $get('type') === 'free_shipping')
+                    ->required(fn ($get) => $get('type') !== 'free_shipping')
+                    ->visible(fn ($get) => $get('type') !== 'free_shipping')
                     ->dehydrated(true)
                     ->prefix('৳'),
                 TextInput::make('min_spend')

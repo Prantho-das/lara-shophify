@@ -18,7 +18,7 @@ class BannerForm
                     ->description('Upload images and add text for the homepage banners.')
                     ->schema([
                         FileUpload::make('image')
-                            ->image()
+                            ->image() ->disk('public')
                             ->required()
                             ->directory('banners')
                             ->imageEditor()

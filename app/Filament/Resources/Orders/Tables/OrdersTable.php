@@ -15,20 +15,22 @@ class OrdersTable
     {
         return $table
             ->columns([
-                TextColumn::make('user_id')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('Guest Customer'),
                 TextColumn::make('status')
                     ->searchable(),
                 TextColumn::make('total_amount')
-                    ->numeric()
+                    ->formatStateUsing(fn ($state) => (\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2))
                     ->sortable(),
                 TextColumn::make('payment_method')
                     ->searchable(),
                 TextColumn::make('payment_status')
                     ->searchable(),
                 TextColumn::make('shipping_charge')
-                    ->numeric()
+                    ->formatStateUsing(fn ($state) => (\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2))
                     ->sortable(),
                 TextColumn::make('courier_name')
                     ->label('Courier')

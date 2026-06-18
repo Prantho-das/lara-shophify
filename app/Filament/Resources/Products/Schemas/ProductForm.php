@@ -40,7 +40,7 @@ class ProductForm
                                     ->relationship('images')
                                     ->schema([
                                         \Filament\Forms\Components\FileUpload::make('path')
-                                            ->image()
+                                            ->image() ->disk('public')
                                             ->required()
                                             ->directory('products')
                                             ->columnSpan(1),

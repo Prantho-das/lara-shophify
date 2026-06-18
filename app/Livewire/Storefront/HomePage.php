@@ -54,6 +54,11 @@ class HomePage extends Component
         return $query->get();
     }
 
+    public function getProduct($productId)
+    {
+        return Product::with(['brand', 'images'])->where('status', 'active')->find($productId);
+    }
+
     public function render()
     {
         return view('livewire.storefront.home-page')

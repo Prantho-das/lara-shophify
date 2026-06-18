@@ -10,8 +10,7 @@ use Filament\Notifications\Notification;
 class InventoryManager extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-square-3-stack-3d';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?int $navigationSort = 4;
+        protected static ?int $navigationSort = 50;
     protected static ?string $title = 'Inventory Stock Manager';
 
     protected string $view = 'filament.pages.inventory-manager';
@@ -33,7 +32,7 @@ class InventoryManager extends Page
             if ($product->has_variants) {
                 foreach ($product->variants as $variant) {
                     $attrs = is_array($variant->attribute_values) ? $variant->attribute_values : json_decode($variant->attribute_values, true);
-                    $varLabel = implode(' / ', $attribs ?? $attrs);
+                    $varLabel = implode(' / ', (array)($attrs ?? []));
                     
                     $this->stocks['variant-' . $variant->id] = [
                         'id' => $variant->id,

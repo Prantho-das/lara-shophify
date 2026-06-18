@@ -11,6 +11,10 @@ Route::get('/cart', \App\Livewire\Storefront\CartPage::class)->name('storefront.
 Route::get('/checkout', \App\Livewire\Storefront\CheckoutPage::class)->name('storefront.checkout');
 Route::get('/page/{slug}', \App\Livewire\Storefront\CmsPage::class)->name('storefront.page');
 
+// XML Product Feed for Facebook Catalogue
+Route::get('/feed/facebook-catalog.xml', [\App\Http\Controllers\FeedController::class, 'facebookCatalog'])->name('feed.facebook');
+Route::get('/sitemap.xml', [\App\Http\Controllers\FeedController::class, 'sitemap'])->name('feed.sitemap');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

@@ -18,9 +18,8 @@ class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Shop';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?int $navigationSort = 1;
+        protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {

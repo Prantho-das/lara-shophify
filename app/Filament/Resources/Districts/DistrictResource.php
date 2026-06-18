@@ -18,9 +18,8 @@ class DistrictResource extends Resource
 {
     protected static ?string $model = District::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map';
-    protected static ?int $navigationSort = 4;
+        protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map';
+    protected static ?int $navigationSort = 170;
 
     protected static ?string $recordTitleAttribute = 'name';
 

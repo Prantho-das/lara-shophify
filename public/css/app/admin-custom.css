@@ -1,0 +1,124 @@
+/* Custom Shopify-style Compact Sidebar for Filament v3 */
+
+.fi-sidebar {
+    background-color: #f6f6f7 !important; /* Shopify light sidebar grey */
+    border-right: 1px solid #e5e5e9 !important;
+    width: 220px !important; /* narrower sidebar */
+}
+
+.dark .fi-sidebar {
+    background-color: #0b0c10 !important; /* Shopify dark sidebar grey */
+    border-right: 1px solid #1f2029 !important;
+}
+
+/* 1. Main Navigation List spacing */
+.fi-sidebar-nav {
+    gap: 0.35rem !important;
+}
+
+/* 2. Sidebar Group structure */
+.fi-sidebar-group {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.fi-sidebar-group-label-wrapper {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.2rem !important;
+    margin-bottom: 0px !important;
+}
+
+.fi-sidebar-group-label {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: #6b7280 !important;
+    margin: 0 !important;
+    padding: 0 0.5rem !important;
+}
+
+/* 3. Items list inside a group */
+.fi-sidebar-group-items {
+    gap: 2px !important;
+    margin-top: 2px !important;
+}
+
+/* 4. Individual item wrapper */
+.fi-sidebar-item {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 5. Anchor button link inside sidebar item */
+.fi-sidebar-item-button,
+a[class*="fi-sidebar-item-button"],
+button[class*="fi-sidebar-item-button"] {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    min-height: 28px !important; /* compact height */
+    font-size: 0.8125rem !important; /* 13px */
+    line-height: 1.25rem !important;
+    border-radius: 4px !important;
+    margin: 0 4px !important;
+    gap: 6px !important;
+    transition: all 0.1s ease-in-out !important;
+}
+
+/* Hover and active states like Shopify */
+.fi-sidebar-item-button:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: #1a1a1a !important;
+}
+
+.dark .fi-sidebar-item-button:hover {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: #ffffff !important;
+}
+
+.fi-sidebar-item-button.fi-active,
+.fi-sidebar-item-button[class*="fi-active"] {
+    background-color: #ffffff !important; /* active item white background like Shopify */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    color: #1a1a1a !important;
+    font-weight: 600 !important;
+}
+
+.dark .fi-sidebar-item-button.fi-active,
+.dark .fi-sidebar-item-button[class*="fi-active"] {
+    background-color: #171821 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Icon custom styling */
+.fi-sidebar-item-icon {
+    width: 0.95rem !important;
+    height: 0.95rem !important;
+    margin-right: 6px !important;
+    color: #61626a !important;
+}
+
+.fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
+.fi-sidebar-item-button[class*="fi-active"] .fi-sidebar-item-icon {
+    color: #1a1a1a !important;
+}
+
+.dark .fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
+.dark .fi-sidebar-item-button[class*="fi-active"] .fi-sidebar-item-icon {
+    color: #ffffff !important;
+}
+
+.dark .fi-sidebar-item-icon {
+    color: #a1a1aa !important;
+}
+
+/* Sidebar label */
+.fi-sidebar-item-label {
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+}

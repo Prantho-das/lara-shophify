@@ -27,6 +27,205 @@
                     <livewire:storefront.components.hero-banner :banner-ids="$section['data']['banner_ids'] ?? []" />
                 </section>
 
+            @elseif(($section['type'] ?? '') === 'hero_split')
+                <!-- Split Hero Banner -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center bg-theme-card border border-theme-border rounded-theme p-8 md:p-16 relative overflow-hidden shadow-sm">
+                    <div class="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+                    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+                    
+                    <div class="space-y-6 relative z-10 {{ ($section['data']['text_alignment'] ?? 'left') === 'right' ? 'md:order-2' : '' }}">
+                        @if(!empty($section['data']['badge_text']))
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20">
+                                {{ $section['data']['badge_text'] }}
+                            </span>
+                        @endif
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-theme-text leading-tight tracking-tight">
+                            {{ $section['data']['title'] }}
+                        </h1>
+                        <p class="text-base md:text-lg text-theme-muted max-w-xl">
+                            {{ $section['data']['subtitle'] ?? '' }}
+                        </p>
+                        <div class="pt-4">
+                            <a href="{{ $section['data']['button_url'] ?? '/shop' }}" wire:navigate class="btn-primary py-3 px-8 font-bold text-sm tracking-wider shadow-md">
+                                {{ $section['data']['button_text'] ?? 'Shop Now' }} <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-inner group {{ ($section['data']['text_alignment'] ?? 'left') === 'right' ? 'md:order-1' : '' }}">
+                        @if(!empty($section['data']['image']))
+                            <img src="{{ asset('storage/' . $section['data']['image']) }}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" alt="{{ $section['data']['title'] }}">
+                        @else
+                            <div class="w-full h-full bg-secondary flex items-center justify-center text-theme-muted">
+                                <i class="fa-solid fa-image text-5xl opacity-40 animate-pulse"></i>
+                            </div>
+                        @endif
+                    </div>
+                </section>
+
+            @elseif(($section['type'] ?? '') === 'category_pills')
+                <!-- Category Pills (Quick Links) -->
+                <section class="space-y-6">
+                    @if(!empty($section['data']['title']))
+                        <h3 class="text-xl font-bold tracking-tight text-theme-text border-b border-theme-border pb-3">{{ $section['data']['title'] }}</h3>
+                    @endif
+                    <div class="flex flex-wrap gap-3">
+                        @foreach($this->getCategories($section['data']['category_ids'] ?? []) as $cat)
+                            <a href="/category/{{ $cat->slug }}" wire:navigate class="flex items-center gap-2.5 px-5 py-3 rounded-full bg-theme-card border border-theme-border text-theme-text hover:border-primary hover:text-primary hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 font-bold text-sm">
+                                @if(!empty($cat->image))
+                                    <img src="{{ asset('storage/' . $cat->image) }}" class="w-6 h-6 rounded-full object-cover" alt="{{ $cat->name }}">
+                                @else
+                                    <i class="fa-solid fa-layer-group text-xs text-primary"></i>
+                                @endif
+                                {{ $cat->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+
+            @elseif(($section['type'] ?? '') === 'tabbed_products')
+                <!-- Tabbed Products Grid -->
+                <section class="space-y-8" x-data="{ activeTab: 0 }">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-theme-border pb-5">
+                        <h2 class="text-3xl font-extrabold tracking-tight text-theme-text">
+                            {{ $section['data']['title'] ?? 'Our Collections' }}
+                        </h2>
+                        
+                        <!-- Tabs Navigation -->
+                        <div class="flex border border-theme-border rounded-full p-1 bg-secondary/50">
+                            @foreach($section['data']['tabs'] ?? [] as $index => $tab)
+                                <button 
+                                    @click="activeTab = {{ $index }}" 
+                                    :class="activeTab === {{ $index }} ? 'bg-primary text-white shadow-md' : 'text-theme-muted hover:text-theme-text'"
+                                    class="px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 uppercase tracking-wider"
+                                >
+                                    {{ $tab['tab_title'] }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Tabs Content Panels -->
+                    @foreach($section['data']['tabs'] ?? [] as $index => $tab)
+                        <div x-show="activeTab === {{ $index }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" class="{{ $gridClass }}">
+                            @foreach($this->getProducts($tab['product_ids'] ?? []) as $product)
+                                <livewire:storefront.components.product-card :product="$product" :key="'tabbed-'.$index.'-'.$product['id']" />
+                            @endforeach
+                        </div>
+                    @endforeach
+                </section>
+
+            @elseif(($section['type'] ?? '') === 'deal_of_the_day')
+                <!-- Deal of the Day / Countdown Section -->
+                @php
+                    $dealProduct = $this->getProduct($section['data']['product_id'] ?? null);
+                    $endTime = !empty($section['data']['countdown_end']) ? strtotime($section['data']['countdown_end']) : time() + 86400;
+                    $stockLimit = (int)($section['data']['stock_limit'] ?? 50);
+                    $stockSold = (int)($section['data']['stock_sold'] ?? 35);
+                    $stockRemaining = max(0, $stockLimit - $stockSold);
+                    $percentSold = ($stockLimit > 0) ? round(($stockSold / $stockLimit) * 100) : 0;
+                @endphp
+                @if($dealProduct)
+                    <section class="bg-gradient-to-br from-theme-card to-secondary/20 border border-theme-border rounded-theme p-8 md:p-14 shadow-md overflow-hidden relative">
+                        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <!-- Product Showcase side -->
+                            <div class="flex flex-col sm:flex-row gap-6 items-center">
+                                <div class="w-full sm:w-1/2 aspect-square rounded-2xl bg-secondary p-4 overflow-hidden border border-theme-border relative group">
+                                    <a href="/product/{{ $dealProduct->slug }}" wire:navigate class="block w-full h-full">
+                                        @if(count($dealProduct->images) > 0)
+                                            <img src="{{ asset('storage/' . $dealProduct->images[0]->path) }}" class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" alt="{{ $dealProduct->name }}">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-theme-muted"><i class="fa-solid fa-image text-3xl opacity-40"></i></div>
+                                        @endif
+                                    </a>
+                                </div>
+                                <div class="w-full sm:w-1/2 space-y-3">
+                                    @if($dealProduct->brand)
+                                        <span class="text-xs uppercase font-extrabold tracking-widest text-primary">{{ $dealProduct->brand->name }}</span>
+                                    @endif
+                                    <h3 class="text-xl font-bold text-theme-text leading-snug">
+                                        <a href="/product/{{ $dealProduct->slug }}" wire:navigate class="hover:text-primary transition-colors">
+                                            {{ $dealProduct->name }}
+                                        </a>
+                                    </h3>
+                                    <div class="flex items-center gap-1.5 text-amber-500 text-xs">
+                                        <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star-half-stroke"></i>
+                                        <span class="text-theme-muted font-bold text-[10px]">(4.8 / 120 reviews)</span>
+                                    </div>
+                                    <div class="flex items-baseline gap-2.5">
+                                        <span class="text-2xl font-black text-primary">৳{{ number_format($dealProduct->selling_price, 2) }}</span>
+                                        @if($dealProduct->compare_price_display > $dealProduct->selling_price)
+                                            <span class="text-sm text-theme-muted line-through">৳{{ number_format($dealProduct->compare_price_display, 2) }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="pt-2">
+                                        <a href="/product/{{ $dealProduct->slug }}" wire:navigate class="btn-primary text-xs font-extrabold px-6 py-2.5 shadow-sm">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Countdown & Stock Tracker side -->
+                            <div class="space-y-6" x-data="{
+                                end: {{ $endTime }},
+                                days: 0, hours: 0, minutes: 0, seconds: 0,
+                                init() {
+                                    this.update();
+                                    setInterval(() => this.update(), 1000);
+                                },
+                                update() {
+                                    let now = Math.floor(Date.now() / 1000);
+                                    let diff = this.end - now;
+                                    if (diff <= 0) return;
+                                    this.days = Math.floor(diff / 86400);
+                                    this.hours = Math.floor((diff % 86400) / 3600);
+                                    this.minutes = Math.floor((diff % 3600) / 60);
+                                    this.seconds = diff % 60;
+                                }
+                            }">
+                                <div class="space-y-1">
+                                    <h4 class="text-xs uppercase font-extrabold text-red-500 tracking-widest flex items-center gap-1.5">
+                                        <i class="fa-solid fa-fire animate-pulse text-sm"></i> Hurry Up! Deal Ends In:
+                                    </h4>
+                                </div>
+                                
+                                <!-- Countdown layout -->
+                                <div class="grid grid-cols-4 gap-3 text-center max-w-sm">
+                                    <div class="bg-theme-card border border-theme-border rounded-xl p-3.5 shadow-sm">
+                                        <div class="text-2xl md:text-3xl font-black text-theme-text" x-text="days">00</div>
+                                        <div class="text-[9px] uppercase tracking-wider text-theme-muted font-bold mt-1">Days</div>
+                                    </div>
+                                    <div class="bg-theme-card border border-theme-border rounded-xl p-3.5 shadow-sm">
+                                        <div class="text-2xl md:text-3xl font-black text-theme-text" x-text="hours">00</div>
+                                        <div class="text-[9px] uppercase tracking-wider text-theme-muted font-bold mt-1">Hours</div>
+                                    </div>
+                                    <div class="bg-theme-card border border-theme-border rounded-xl p-3.5 shadow-sm">
+                                        <div class="text-2xl md:text-3xl font-black text-theme-text" x-text="minutes">00</div>
+                                        <div class="text-[9px] uppercase tracking-wider text-theme-muted font-bold mt-1">Mins</div>
+                                    </div>
+                                    <div class="bg-theme-card border border-theme-border rounded-xl p-3.5 shadow-sm">
+                                        <div class="text-2xl md:text-3xl font-black text-theme-text" x-text="seconds">00</div>
+                                        <div class="text-[9px] uppercase tracking-wider text-theme-muted font-bold mt-1">Secs</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stock Progress Bar -->
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-xs text-theme-muted font-bold">
+                                        <span>Only <strong class="text-red-500">{{ $stockRemaining }} items</strong> left in stock!</span>
+                                        <span>{{ $percentSold }}% Sold</span>
+                                    </div>
+                                    <div class="w-full h-2.5 bg-secondary border border-theme-border rounded-full overflow-hidden shadow-inner">
+                                        <div class="h-full bg-gradient-to-r from-red-500 to-amber-500 transition-all duration-1000" style="width: {{ $percentSold }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                @endif
+
             @elseif(($section['type'] ?? '') === 'featured_categories')
                 <!-- Categories section -->
                 <section class="space-y-8">

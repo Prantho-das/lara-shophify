@@ -14,8 +14,9 @@ class DistrictsTable
     {
         return $table
             ->columns([
-                TextColumn::make('country_id')
-                    ->numeric()
+                TextColumn::make('country.name')
+                    ->label('Country')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),

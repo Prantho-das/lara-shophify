@@ -16,9 +16,10 @@ class CategoriesTable
     {
         return $table
             ->columns([
-                TextColumn::make('parent_id')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('parent.name')
+                    ->label('Parent Category')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('slug')

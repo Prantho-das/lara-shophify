@@ -7,6 +7,9 @@
     @endphp
     <title>{{ $title ?? ($settings['seo_meta_title'] ?? ($settings['store_name'] ?? 'E-Commerce Store')) }}</title>
     <meta name="description" content="{{ $meta_description ?? ($settings['seo_meta_description'] ?? '') }}">
+    @if(!empty($settings['store_favicon']))
+        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $settings['store_favicon']) }}">
+    @endif
     
     <!-- Preconnect & Fonts Preloading for Max PageSpeed -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,42 +62,70 @@
         :root {
             @if(!empty($settings['primary_color']))
                 --primary-color: {{ $settings['primary_color'] }};
-            @else
-                --primary-color: #22c55e;
+                --primary-hover: {{ $settings['primary_color'] }}cc;
+                --secondary-color: color-mix(in srgb, {{ $settings['primary_color'] }} 8%, white);
             @endif
             @if(!empty($settings['secondary_color']))
                 --secondary-color: {{ $settings['secondary_color'] }};
-            @else
-                --secondary-color: #f0fdf4;
             @endif
-            
-            @if($storeTheme === 'electronics')
-                --bg-color: #080c14;
-                --card-bg: #0f172a;
-                --text-color: #f8fafc;
-                --text-muted: #94a3b8;
-                --border-color: #1e293b;
-                --border-radius: 12px;
-                --accent-color: #06b6d4;
-            @elseif($storeTheme === 'fashion')
-                --bg-color: #ffffff;
-                --card-bg: #ffffff;
-                --text-color: #0f172a;
-                --text-muted: #64748b;
-                --border-color: #f1f5f9;
-                --border-radius: 0px;
-                --accent-color: #d4af37;
-            @else
-                --bg-color: #f8fafc;
-                --card-bg: #ffffff;
-                --text-color: #0f172a;
-                --text-muted: #64748b;
-                --border-color: #e2e8f0;
-                --border-radius: 18px;
-                --accent-color: #f59e0b;
+        }
+
+        .dark {
+            @if(!empty($settings['primary_color']))
+                --secondary-color: color-mix(in srgb, {{ $settings['primary_color'] }} 12%, #0b1329);
+            @endif
+            @if(!empty($settings['secondary_color']))
+                --secondary-color: {{ $settings['secondary_color'] }};
             @endif
         }
     </style>
+
+    <!-- Theme Initialization Script -->
+    <script>
+        function applyTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        applyTheme();
+
+        function updateThemeIcons() {
+            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+            const lightIcon = document.getElementById('theme-toggle-light-icon');
+            if (!darkIcon || !lightIcon) return;
+            
+            if (document.documentElement.classList.contains('dark')) {
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+            } else {
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+            }
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateThemeIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme();
+            updateThemeIcons();
+        });
+        document.addEventListener('livewire:navigated', () => {
+            applyTheme();
+            updateThemeIcons();
+        });
+    </script>
 
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -124,6 +155,17 @@
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '{{ $settings['facebook_pixel_id'] }}');
     fbq('track', 'PageView');
+
+    // Livewire custom event listener for CAPI deduplication
+    window.addEventListener('fb-event', event => {
+        let detail = event.detail;
+        if (detail && window.fbq) {
+            let name = detail.name;
+            let data = detail.data || {};
+            let eventId = detail.eventId;
+            fbq('track', name, data, eventId ? { eventID: eventId } : {});
+        }
+    });
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id={{ $settings['facebook_pixel_id'] }}&ev=PageView&noscript=1"
@@ -176,6 +218,112 @@
 
     <!-- Global Footer -->
     <livewire:storefront.components.footer />
+
+    @if($settings['popup_enabled'] ?? false)
+        @php
+            $popupType = $settings['popup_type'] ?? 'newsletter';
+            $popupDelay = (int) ($settings['popup_delay'] ?? 3) * 1000;
+            $popupCookieLifetime = (int) ($settings['popup_cookie_lifetime'] ?? 1);
+            $popupTitle = $settings['popup_title'] ?? '';
+            $popupContent = $settings['popup_content'] ?? '';
+            $popupImage = $settings['popup_image'] ?? '';
+            $popupLink = $settings['popup_link'] ?? '';
+        @endphp
+        
+        <div 
+            x-data="{ 
+                show: false,
+                init() {
+                    const hiddenUntil = localStorage.getItem('hide_storefront_popup_until');
+                    if (!hiddenUntil || new Date().getTime() > parseInt(hiddenUntil)) {
+                        setTimeout(() => {
+                            this.show = true;
+                        }, {{ $popupDelay }});
+                    }
+                },
+                closePopup() {
+                    this.show = false;
+                },
+                closePermanently() {
+                    const days = {{ $popupCookieLifetime }};
+                    const expireTime = new Date().getTime() + (days * 24 * 60 * 60 * 1000);
+                    localStorage.setItem('hide_storefront_popup_until', expireTime.toString());
+                    this.show = false;
+                }
+            }"
+            x-show="show"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            style="display: none;"
+        >
+            <div 
+                @click.away="closePopup()"
+                class="relative w-full max-w-lg bg-theme-card text-theme-text rounded-theme border border-theme-border shadow-2xl overflow-hidden"
+            >
+                <button @click="closePopup()" class="absolute top-4 right-4 z-10 text-theme-muted hover:text-primary transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+
+                @if($popupType === 'newsletter')
+                    <div class="p-8 md:p-10 text-center">
+                        <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fa-solid fa-envelope-open-text text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black tracking-tight mb-2">{{ $popupTitle }}</h3>
+                        <div class="text-theme-muted mb-6 prose prose-sm max-w-none dark:prose-invert">
+                            {!! $popupContent !!}
+                        </div>
+                        <form onsubmit="event.preventDefault(); alert('Subscribed successfully!');" class="space-y-4">
+                            <input type="email" placeholder="Enter your email address" required class="w-full px-4 py-3 bg-secondary/30 border border-theme-border rounded-theme focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-theme-text">
+                            <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-theme hover:bg-primary/90 transition-colors shadow-lg hover:shadow-primary/20">Subscribe Now</button>
+                        </form>
+                        <div class="mt-6 flex items-center justify-center gap-2">
+                            <input type="checkbox" id="dont_show_again" @change="closePermanently()" class="rounded border-theme-border text-primary focus:ring-primary bg-transparent">
+                            <label for="dont_show_again" class="text-xs text-theme-muted cursor-pointer hover:text-theme-text transition-colors">Don't show this again</label>
+                        </div>
+                    </div>
+
+                @elseif($popupType === 'promotion')
+                    <div class="relative">
+                        @if($popupLink)
+                            <a href="{{ $popupLink }}" @click="closePopup()">
+                                <img src="{{ asset('storage/' . $popupImage) }}" alt="Promotion" class="w-full h-auto object-cover max-h-[400px]">
+                            </a>
+                        @else
+                            <img src="{{ asset('storage/' . $popupImage) }}" alt="Promotion" class="w-full h-auto object-cover max-h-[400px]">
+                        @endif
+                        <div class="p-4 text-center bg-theme-card border-t border-theme-border flex items-center justify-center gap-2">
+                            <input type="checkbox" id="dont_show_promo" @change="closePermanently()" class="rounded border-theme-border text-primary focus:ring-primary bg-transparent">
+                            <label for="dont_show_promo" class="text-xs text-theme-muted cursor-pointer hover:text-theme-text transition-colors">Don't show this again</label>
+                        </div>
+                    </div>
+
+                @elseif($popupType === 'announcement')
+                    <div class="p-8 text-center">
+                        <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fa-solid fa-bullhorn text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black tracking-tight mb-2">{{ $popupTitle }}</h3>
+                        <div class="text-theme-muted mb-6 prose prose-sm max-w-none dark:prose-invert">
+                            {!! $popupContent !!}
+                        </div>
+                        @if($popupLink)
+                            <a href="{{ $popupLink }}" @click="closePopup()" class="inline-block px-8 py-3 bg-primary text-white font-bold rounded-theme hover:bg-primary/90 transition-colors shadow-lg hover:shadow-primary/20">Learn More</a>
+                        @endif
+                        <div class="mt-6 flex items-center justify-center gap-2">
+                            <input type="checkbox" id="dont_show_announce" @change="closePermanently()" class="rounded border-theme-border text-primary focus:ring-primary bg-transparent">
+                            <label for="dont_show_announce" class="text-xs text-theme-muted cursor-pointer hover:text-theme-text transition-colors">Don't show this again</label>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
 
     @livewireScripts
 </body>

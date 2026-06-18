@@ -36,6 +36,18 @@
                     <livewire:storefront.components.search-bar />
                 </div>
 
+                <!-- Dark Mode Toggle Button -->
+                <button 
+                    id="theme-toggle" 
+                    type="button" 
+                    class="p-2 text-theme-text hover:text-primary transition-colors focus:outline-none"
+                    onclick="toggleDarkMode()"
+                    title="Toggle Light/Dark Theme"
+                >
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon text-lg hidden"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun text-lg hidden"></i>
+                </button>
+
                 <!-- Shopping Cart Icon -->
                 <a href="/cart" wire:navigate class="relative p-2 text-theme-text hover:text-primary transition-colors">
                     <i class="fa-solid fa-bag-shopping text-xl"></i>

@@ -20,17 +20,19 @@ class ProductsTable
                 TextColumn::make('slug')
                     ->searchable(),
                 TextColumn::make('base_price')
-                    ->money()
+                    ->formatStateUsing(fn ($state) => (\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2))
                     ->sortable(),
                 TextColumn::make('compare_price')
-                    ->money()
+                    ->formatStateUsing(fn ($state) => $state ? ((\App\Models\Setting::where('key', 'currency_symbol')->value('value') ?? '৳') . ' ' . number_format($state, 2)) : '-')
                     ->sortable(),
-                TextColumn::make('category_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('brand_id')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('brand.name')
+                    ->label('Brand')
+                    ->sortable()
+                    ->searchable(),
                 IconColumn::make('has_variants')
                     ->boolean(),
                 TextColumn::make('meta_title')
