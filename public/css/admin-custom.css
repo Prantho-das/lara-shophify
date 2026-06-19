@@ -3,7 +3,6 @@
 .fi-sidebar {
     background-color: #f6f6f7 !important; /* Shopify light sidebar grey */
     border-right: 1px solid #e5e5e9 !important;
-    width: 220px !important; /* narrower sidebar */
 }
 
 .dark .fi-sidebar {
