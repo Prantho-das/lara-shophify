@@ -15,6 +15,11 @@ class InventoryManager extends Page
 
     protected string $view = 'filament.pages.inventory-manager';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return module('inventory');
+    }
+
     // Model properties for binding edits
     public $stocks = [];
 

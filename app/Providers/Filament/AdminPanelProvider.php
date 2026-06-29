@@ -24,6 +24,8 @@ use Filament\Support\Assets\Css;
 use App\Filament\Widgets\StatsOverview;
 use App\Filament\Widgets\OrdersChart;
 use App\Filament\Widgets\QuickActions;
+use App\Filament\Widgets\AccountsDashboard;
+use App\Filament\Widgets\PayrollDashboard;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -58,7 +60,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                QuickActions::class,
                StatsOverView::class,
-               OrdersChart::class
+               OrdersChart::class,
+               AccountsDashboard::class,
+               PayrollDashboard::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -18,6 +18,11 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class, 'variant_id');
+    }
+
     public function getSellingPriceAttribute()
     {
         $price = (float) $this->price;
@@ -39,5 +44,19 @@ class ProductVariant extends Model
             return $this->compare_price ?: $this->price;
         }
         return $this->compare_price;
+    }
+
+    public function getResellerPrice(?ResellerProfile $reseller = null): float
+    {
+        if (!$reseller) {
+            return $this->selling_price;
+        }
+
+        $customPrice = $reseller->getResellerPriceFor($this->product, $this);
+        if ($customPrice !== null) {
+            return $customPrice;
+        }
+
+        return $reseller->getDiscountedPrice((float) $this->price);
     }
 }

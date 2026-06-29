@@ -1,0 +1,1 @@
+<?php namespace App\Filament\Resources\ResellerProfileResource\Pages;use App\Filament\Resources\ResellerProfileResource;use Filament\Resources\Pages\CreateRecord;class CreateResellerProfile extends CreateRecord{    protected static string $resource = ResellerProfileResource::class;}

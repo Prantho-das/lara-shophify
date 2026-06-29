@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\RichEditor;
 use Filament\Notifications\Notification;
 use App\Models\Setting;
+use App\Services\ModuleService;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 
@@ -32,6 +33,7 @@ class StoreSettings extends Page implements HasForms
     public function mount(): void
     {
         $settings = Setting::pluck('value', 'key')->toArray();
+        $modulesRaw = json_decode($settings['modules'] ?? '{}', true);
         
         $this->form->fill([
             'store_name' => $settings['store_name'] ?? '',
@@ -88,6 +90,10 @@ class StoreSettings extends Page implements HasForms
             'popup_link' => $settings['popup_link'] ?? '',
             'popup_delay' => $settings['popup_delay'] ?? 3,
             'popup_cookie_lifetime' => $settings['popup_cookie_lifetime'] ?? 1,
+            'module_inventory' => filter_var($modulesRaw['inventory'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'module_reseller' => filter_var($modulesRaw['reseller'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'module_accounts' => filter_var($modulesRaw['accounts'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'module_payroll' => filter_var($modulesRaw['payroll'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ]);
     }
 
@@ -591,6 +597,36 @@ class StoreSettings extends Page implements HasForms
                                         ->content(fn() => new \Illuminate\Support\HtmlString('<a href="' . url('/feed/facebook-catalog.xml') . '" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline font-mono flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' . url('/feed/facebook-catalog.xml') . '</a>')),
                                 ])->columns(2),
                             ]),
+                        Tabs\Tab::make('Modules')
+                            ->icon('heroicon-o-puzzle-piece')
+                            ->schema([
+                                \Filament\Schemas\Components\Grid::make(2)->schema([
+                                    Toggle::make('module_inventory')
+                                        ->label('Inventory Management')
+                                        ->helperText('Multi-warehouse stock tracking, transfers, and low-stock alerts.')
+                                        ->default(false),
+                                    Toggle::make('module_reseller')
+                                        ->label('Reseller')
+                                        ->helperText('Reseller tiers with special pricing on products.')
+                                        ->default(false),
+                                    Toggle::make('module_accounts')
+                                        ->label('Accounts & Ledger')
+                                        ->helperText('Income/expense tracking, payment records, and financial reports.')
+                                        ->default(false),
+                                    Toggle::make('module_payroll')
+                                        ->label('Payroll')
+                                        ->helperText('Employee salaries, attendance, deductions, and payslips.')
+                                        ->default(false),
+                                ])->columns(2),
+                                \Filament\Forms\Components\Placeholder::make('modules_note')
+                                    ->label('')
+                                    ->content(fn() => new \Illuminate\Support\HtmlString(
+                                        '<div class="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm text-gray-600 dark:text-gray-400">' .
+                                        '<strong>Note:</strong> Enabling a module adds its navigation items and features to the admin panel. ' .
+                                        'You can disable a module at any time — its data will be preserved but hidden from navigation.' .
+                                        '</div>'
+                                    )),
+                            ]),
                     ])->columnSpanFull()
             ])
             ->statePath('data');
@@ -600,6 +636,15 @@ class StoreSettings extends Page implements HasForms
     {
         try {
             $data = $this->form->getState();
+
+            // Extract module toggles and save separately
+            $moduleService = app(ModuleService::class);
+            $modules = [];
+            foreach (['inventory', 'reseller', 'accounts', 'payroll'] as $key) {
+                $modules[$key] = filter_var($data["module_{$key}"] ?? false, FILTER_VALIDATE_BOOLEAN);
+                unset($data["module_{$key}"]);
+            }
+            $moduleService->save($modules);
 
             foreach ($data as $key => $value) {
                 $val = is_array($value) ? json_encode($value) : $value;

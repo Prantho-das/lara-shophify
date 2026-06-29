@@ -35,6 +35,16 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
+    }
+
+    public function getTotalStockAttribute(): int
+    {
+        return (int) $this->stocks()->sum('quantity');
+    }
+
     public function getSellingPriceAttribute()
     {
         $basePrice = (float) $this->base_price;
@@ -54,5 +64,19 @@ class Product extends Model
             return $this->compare_price ?: $this->base_price;
         }
         return $this->compare_price;
+    }
+
+    public function getResellerPrice(?ResellerProfile $reseller = null): float
+    {
+        if (!$reseller) {
+            return $this->selling_price;
+        }
+
+        $customPrice = $reseller->getResellerPriceFor($this);
+        if ($customPrice !== null) {
+            return $customPrice;
+        }
+
+        return $reseller->getDiscountedPrice($this->base_price);
     }
 }

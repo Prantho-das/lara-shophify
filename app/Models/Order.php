@@ -13,6 +13,16 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    public function resellerProfile()
+    {
+        return $this->belongsTo(ResellerProfile::class);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
